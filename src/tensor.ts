@@ -6,6 +6,11 @@ function idx(i: int, N: int) {
   return i;
 }
 
+const ADD = (a: float, b: float) => a + b;
+const SUB = (a: float, b: float) => a - b;
+const MUL = (a: float, b: float) => a * b;
+const DIV = (a: float, b: float) => a / b;
+
 class Tensor {
   public readonly dim: int;
   public readonly size: int;
@@ -41,14 +46,12 @@ class Tensor {
     for (let k = 0; k < indices.length; ++k) {
       idx = idx * this.shape[k] + indices[k];
     }
-    for (let i = 0; i < values.length; ++i) {
-      this.data[idx + i] = values[i];
-    }
+    this.data.set(values, idx);
   }
 }
 
 export class TensorView {
-  public static of(shape: int[], initialValue: float) {
+  public static of(shape: int[], initialValue: float = 0) {
     const tensor = new Tensor(shape, initialValue);
     return new TensorView(
       tensor,
@@ -69,98 +72,133 @@ export class TensorView {
     return this.ranges.map(([start, end]) => end - start);
   }
 
-  public slice(...indices: (int | [int] | [int, int])[]): TensorView {
+  public get(...indices: int[]): float {
+    return this.tensor.get(
+      indices.map((offset, k) => this.ranges[k][0] + offset)
+    )[0];
+  }
+
+  public getl(...indices: int[]): {
+    set: (value: float) => void;
+  } {
+    return {
+      set: (value: float) => {
+        this.tensor.set(
+          indices.map((offset, k) => this.ranges[k][0] + offset),
+          new Float32Array([value])
+        );
+      },
+    };
+  }
+
+  public slice(...indices: (int | [int, int] | [int] | [])[]): TensorView {
     if (indices.length > this.dim) {
       throw `Dimension mismatch: ${indices.length} > ${this.dim}`;
     }
     const ranges: [int, int][] = [];
-    for (let i = 0; i < this.dim; ++i) {
-      const [start, end] = this.ranges[i];
+    for (let k = 0; k < this.dim; ++k) {
+      const [start, end] = this.ranges[k];
       const N = end - start;
-      if (i < indices.length) {
-        const I = indices[i];
+      if (k < indices.length) {
+        const I = indices[k];
         if (typeof I == "number") {
-          ranges.push([start + idx(I, N), start + idx(I + 1, N)]);
+          ranges.push([start + idx(I, N), start + idx(I, N) + 1]);
         } else if (I.length === 2) {
           ranges.push([start + idx(I[0], N), start + idx(I[1], N)]);
-        } else {
+        } else if (I.length === 1) {
           ranges.push([start + idx(I[0], N), end]);
+        } else {
+          ranges.push([start, end]);
         }
       } else {
         ranges.push([start, end]);
       }
     }
-    console.log(ranges);
     return new TensorView(this.tensor, ranges);
   }
 
   public set(value: float | TensorView) {
-    if (typeof value === "number") {
-      this.fill(value);
-    } else {
-      this.copy(value);
-    }
+    const that =
+      typeof value === "number" ? TensorView.of(this.shape, value) : value;
+    this.traverse(that, (thisIndices, thatIndices, N) => {
+      const values = that.tensor.get(thatIndices, N);
+      this.tensor.set(thisIndices, values);
+    });
   }
 
-  private fill(value: float) {
-    const dim = this.dim;
-    const ranges = this.ranges;
-    const tensor = this.tensor;
-    function traverse(indices: int[]) {
-      const k = indices.length;
-      const [start, end] = ranges[k];
-      if (k === dim - 1) {
-        tensor.set(
-          [...indices, start],
-          new Float32Array(end - start).fill(value)
-        );
-        return;
-      }
-      for (let i = start; i < end; ++i) {
-        traverse([...indices, i]);
-      }
-    }
-    traverse([]);
+  public add(value: float | TensorView) {
+    return this.vectorOp(ADD, value);
   }
 
-  private copy(that: TensorView) {
+  public sub(value: float | TensorView) {
+    return this.vectorOp(SUB, value);
+  }
+
+  public mul(value: float | TensorView) {
+    return this.vectorOp(MUL, value);
+  }
+
+  public div(value: float | TensorView) {
+    return this.vectorOp(DIV, value);
+  }
+
+  private vectorOp(
+    op: (a: float, b: float) => float,
+    value: float | TensorView
+  ): TensorView {
+    const that =
+      typeof value === "number" ? TensorView.of(this.shape, value) : value;
+
+    const result = TensorView.of(this.shape);
+
+    this.traverse(that, (thisIndices, thatIndices, N, indices) => {
+      const thisValues = this.tensor.get(thisIndices, N);
+      const thatValues = that.tensor.get(thatIndices, N);
+      const values = new Float32Array(N);
+      for (let i = 0; i < N; ++i) {
+        values[i] = op(thisValues[i], thatValues[i]);
+      }
+      result.tensor.set(indices, values);
+    });
+
+    return result;
+  }
+
+  private traverse(
+    that: TensorView,
+    fn: (thisIndices: int[], thatIndices: int[], N: int, indices: int[]) => void
+  ) {
     if (that.dim !== this.dim) {
       throw `Dimension mismatch: ${that.dim} != ${this.dim}`;
     }
 
     const dim = this.dim;
-    const dstRanges = this.ranges;
-    const srcRanges = that.ranges;
-    const dstShape = this.shape;
-    const srcShape = that.shape;
+    const thisShape = this.shape;
+    const thatShape = that.shape;
 
     for (let i = 0; i < dim; ++i) {
-      if (srcShape[i] !== dstShape[i]) {
+      if (thatShape[i] !== thisShape[i]) {
         throw `Dimension mismatch (${i})`;
       }
     }
 
-    const srcTensor = that.tensor;
-    const dstTensor = this.tensor;
+    const thisRanges = this.ranges;
+    const thatRanges = that.ranges;
 
     function traverse(offsets: int[]) {
       const k = offsets.length;
-      const N = dstShape[k];
+      const N = thisShape[k];
       if (k === dim - 1) {
-        const values = srcTensor.get(
-          [
-            ...offsets.map((offset, i) => srcRanges[i][0] + offset),
-            srcRanges[k][0],
-          ],
-          N
-        );
-        dstTensor.set(
-          [
-            ...offsets.map((offset, i) => dstRanges[i][0] + offset),
-            dstRanges[k][0],
-          ],
-          values
-        );
+        const indices = [...offsets, 0];
+        const thisIndices = [
+          ...offsets.map((offset, i) => thisRanges[i][0] + offset),
+          thisRanges[k][0],
+        ];
+        const thatIndices = [
+          ...offsets.map((offset, i) => thatRanges[i][0] + offset),
+          thatRanges[k][0],
+        ];
+        fn(thisIndices, thatIndices, N, indices);
         return;
       }
       for (let i = 0; i < N; ++i) {
@@ -169,6 +207,12 @@ export class TensorView {
     }
 
     traverse([]);
+  }
+
+  public copy() {
+    const res = TensorView.of(this.shape);
+    res.set(this);
+    return res;
   }
 
   public toString() {
@@ -201,5 +245,27 @@ export class TensorView {
     }
 
     return toString([]);
+  }
+}
+
+export class Scalar {
+  public static from(value: float) {
+    return new Scalar(value);
+  }
+  private constructor(public value: float) {}
+  public add(view: TensorView) {
+    return this.cast(view).add(view);
+  }
+  public sub(view: TensorView) {
+    return this.cast(view).sub(view);
+  }
+  public mul(view: TensorView) {
+    return this.cast(view).mul(view);
+  }
+  public div(view: TensorView) {
+    return this.cast(view).div(view);
+  }
+  private cast(view: TensorView) {
+    return TensorView.of(view.shape, this.value);
   }
 }
