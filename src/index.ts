@@ -36,7 +36,7 @@ const tol = 1e-3;
 const maxit = 10;
 const beta = 1.25;
 
-function SOR(p: TensorView, S: TensorView, dx: float, dy: float) {
+function poissonSOR(p: TensorView, S: TensorView, dx: float, dy: float) {
   let it = 0;
   let err = 1e10;
   while (err > tol && it < maxit) {
@@ -204,7 +204,7 @@ function step() {
       )
   );
 
-  SOR(p, divut.div(dt), dx, dy);
+  poissonSOR(p, divut.div(dt), dx, dy);
 
   u.slice([1, -1], [2, -1]).set(
     ut.slice([1, -1], [2, -1]).sub(
