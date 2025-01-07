@@ -1,0 +1,16 @@
+{
+  "name": "fvm-cfd",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --outdir=dist",
+    "dev": "npm run build -- --watch --serve --serve-fallback=./index.html"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.24.2",
+    "typescript": "^5.7.2"
+  }
+}
