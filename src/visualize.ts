@@ -1,5 +1,5 @@
-import { interpolateInferno } from "d3-scale-chromatic";
 import { TensorView } from "./tensor";
+import { interpolateMagma } from "d3-scale-chromatic";
 
 export function createPlot(nx: int, ny: int, Umax: float) {
   const plot = document.querySelector("svg#plot") as SVGElement;
@@ -56,7 +56,8 @@ export function createPlot(nx: int, ny: int, Umax: float) {
       .add(v.slice([2], [1, -1]))
       .div(2);
 
-    const scale = (Math.SQRT2 * Math.max(xStep, yStep)) / Umax;
+    const scale = Math.sqrt(xStep * xStep + yStep * yStep) / (0.75 * Umax);
+
     for (let j = 0; j < ny; ++j) {
       for (let i = 0; i < nx; ++i) {
         const x = (i + 0.5) * xStep;
@@ -68,7 +69,7 @@ export function createPlot(nx: int, ny: int, Umax: float) {
         const xEnd = x + (u / 2) * scale;
         const yEnd = y + (v / 2) * scale;
         const speed = Math.sqrt(u * u + v * v);
-        cells[j][i].setAttribute("fill", interpolateInferno(speed / Umax));
+        cells[j][i].setAttribute("fill", interpolateMagma(speed / Umax));
         glyphs[j][i].setAttribute(
           "d",
           `M ${xStart} ${height - yStart} L ${xEnd} ${height - yEnd}`
