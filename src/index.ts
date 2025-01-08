@@ -1,26 +1,13 @@
-import { interpolateInferno, interpolatePlasma } from "d3-scale-chromatic";
 import { Scalar, TensorView } from "./tensor";
+import { createPlot } from "./visualize";
 
-const nx = 25;
-const ny = 25;
-const nu = 0.1;
+const nx = 30;
+const ny = 30;
+const nu = 0.005;
 const lx = 1;
 const ly = 1;
 const dx = lx / nx;
 const dy = ly / ny;
-
-const Umax = 5;
-
-const dt1 = 0.5 / nu / (1 / dx / dx + 1 / dy / dy);
-const dt2 = (2 * nu) / Umax / Umax;
-const dt = Math.min(dt1, dt2);
-
-const p = TensorView.of([ny + 2, nx + 2], 0);
-const u = TensorView.of([ny + 2, nx + 2], 0);
-const v = TensorView.of([ny + 2, nx + 2], 0);
-const ut = TensorView.of([ny + 2, nx + 2], 0);
-const vt = TensorView.of([ny + 2, nx + 2], 0);
-const divut = TensorView.of([ny + 2, nx + 2], 0);
 
 const Ae = TensorView.of([ny + 2, nx + 2], 1 / dx / dx);
 const Aw = TensorView.of([ny + 2, nx + 2], 1 / dx / dx);
@@ -36,7 +23,7 @@ const tol = 1e-3;
 const maxit = 10;
 const beta = 1.25;
 
-function poissonSOR(p: TensorView, S: TensorView, dx: float, dy: float) {
+function poissonSOR(p: TensorView, S: TensorView) {
   let it = 0;
   let err = 1e10;
   while (err > tol && it < maxit) {
@@ -61,89 +48,30 @@ function poissonSOR(p: TensorView, S: TensorView, dx: float, dy: float) {
     err = Math.sqrt(errsq / nx / ny);
     ++it;
   }
-  // console.log(err);
 }
 
-const plot = document.querySelector("svg#plot") as SVGElement;
-const glyphs = Array(ny)
-  .fill(0)
-  .map(() => Array(nx).fill(null));
-const cells = Array(ny)
-  .fill(0)
-  .map(() => Array(nx).fill(null));
+const Umax = 5;
 
-const width = 256;
-const height = 256;
-const xStep = width / nx;
-const yStep = height / ny;
-plot.setAttribute("viewBox", `${0} ${0} ${width} ${height}`);
-plot.style.height = "90vh";
+const dt1 = 0.5 / nu / (1 / dx / dx + 1 / dy / dy);
+const dt2 = (2 * nu) / Umax / Umax;
+const dt = Math.min(dt1, dt2);
 
-for (let j = 0; j < ny; ++j) {
-  for (let i = 0; i < nx; ++i) {
-    const cell = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    cell.setAttribute("x", String(i * xStep));
-    cell.setAttribute("y", String(height - (j + 1) * yStep));
-    cell.setAttribute("width", String(xStep));
-    cell.setAttribute("height", String(yStep));
-    plot.appendChild(cell);
-    cells[j][i] = cell;
-  }
-}
+const p = TensorView.of([ny + 2, nx + 2], 0);
+const u = TensorView.of([ny + 2, nx + 2], 0);
+const v = TensorView.of([ny + 2, nx + 2], 0);
+const ut = TensorView.of([ny + 2, nx + 2], 0);
+const vt = TensorView.of([ny + 2, nx + 2], 0);
+const divut = TensorView.of([ny + 2, nx + 2], 0);
 
-for (let j = 0; j < ny; ++j) {
-  for (let i = 0; i < nx; ++i) {
-    const glyph = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "path"
-    );
-    glyph.setAttribute("marker-end", "url(#head)");
-    glyph.setAttribute("stroke-width", "1");
-    glyph.setAttribute("stroke", "#ffffff88");
-    plot.appendChild(glyph);
-    glyphs[j][i] = glyph;
-  }
-}
-
-function visualize() {
-  const up = u
-    .slice([1, -1], [1, -1])
-    .add(u.slice([1, -1], [2]))
-    .div(2);
-
-  const vp = v
-    .slice([1, -1], [1, -1])
-    .add(v.slice([2], [1, -1]))
-    .div(2);
-
-  const scale = 5;
-  for (let j = 0; j < ny; ++j) {
-    for (let i = 0; i < nx; ++i) {
-      const x = (i + 0.5) * xStep;
-      const y = (j + 0.5) * yStep;
-      const u = up.get(j, i);
-      const v = vp.get(j, i);
-      const xStart = x - (u / 2) * scale;
-      const yStart = y - (v / 2) * scale;
-      const xEnd = x + (u / 2) * scale;
-      const yEnd = y + (v / 2) * scale;
-      const speed = Math.sqrt(u * u + v * v);
-      cells[j][i].setAttribute("fill", interpolateInferno(speed / Umax));
-      glyphs[j][i].setAttribute(
-        "d",
-        `M ${xStart} ${height - yStart} L ${xEnd} ${height - yEnd}`
-      );
-    }
-  }
-}
+const visualize = createPlot(nx, ny, Umax);
 
 let t = 0;
 
-function step() {
-  const Ut = Math.sin(1 * t) * Umax;
-  const Ub = Math.sin(2 * t) * Umax;
-  const Vl = Math.sin(3 * t) * Umax;
-  const Vr = Math.sin(4 * t) * Umax;
+function advance() {
+  const Ut = Umax;
+  const Ub = Math.sin(1 * t + 1) * Umax;
+  const Vl = Math.sin(2 * t + 2) * Umax;
+  const Vr = Math.sin(3 * t + 3) * Umax;
 
   u.slice([], 1).set(0);
   u.slice([], -1).set(0);
@@ -204,7 +132,7 @@ function step() {
       )
   );
 
-  poissonSOR(p, divut.div(dt), dx, dy);
+  poissonSOR(p, divut.div(dt));
 
   u.slice([1, -1], [2, -1]).set(
     ut.slice([1, -1], [2, -1]).sub(
@@ -226,8 +154,8 @@ function step() {
   );
   t += dt;
 
-  visualize();
-  requestAnimationFrame(step);
+  visualize(u, v);
+  requestAnimationFrame(advance);
 }
 
-requestAnimationFrame(step);
+requestAnimationFrame(advance);
