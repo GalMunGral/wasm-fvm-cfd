@@ -69,9 +69,9 @@ let t = 0;
 
 function advance() {
   const Ut = Umax;
-  const Ub = (Math.sin(t) + 0.5) * Umax;
-  const Vl = Math.sin(5 * t + 2) * Umax;
-  const Vr = Math.sin(5 * t + 3) * Umax;
+  const Ub = Umax;
+  const Vl = 0;
+  const Vr = (Math.sin(5 * t) + 0.5) * Umax;
 
   u.slice([], 1).set(0);
   u.slice([], -1).set(0);
