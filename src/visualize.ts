@@ -1,5 +1,5 @@
 import { TensorView } from "./tensor";
-import { interpolateMagma } from "d3-scale-chromatic";
+import { interpolateInferno } from "d3-scale-chromatic";
 
 export function createPlot(nx: int, ny: int, Umax: float) {
   const plot = document.querySelector("svg#plot") as SVGElement;
@@ -15,7 +15,6 @@ export function createPlot(nx: int, ny: int, Umax: float) {
   const xStep = width / nx;
   const yStep = height / ny;
   plot.setAttribute("viewBox", `${0} ${0} ${width} ${height}`);
-  plot.style.height = "90vh";
 
   for (let j = 0; j < ny; ++j) {
     for (let i = 0; i < nx; ++i) {
@@ -39,8 +38,8 @@ export function createPlot(nx: int, ny: int, Umax: float) {
         "path"
       );
       glyph.setAttribute("marker-end", "url(#head)");
-      glyph.setAttribute("stroke-width", "2");
-      glyph.setAttribute("stroke", "#ffffff88");
+      glyph.setAttribute("stroke-width", "1");
+      glyph.setAttribute("stroke", "#ffffffcc");
       plot.appendChild(glyph);
       glyphs[j][i] = glyph;
     }
@@ -56,7 +55,7 @@ export function createPlot(nx: int, ny: int, Umax: float) {
       .add(v.slice([2], [1, -1]))
       .div(2);
 
-    const scale = Math.sqrt(xStep * xStep + yStep * yStep) / (0.75 * Umax);
+    const scale = Math.sqrt(xStep * xStep + yStep * yStep) / Umax;
 
     for (let j = 0; j < ny; ++j) {
       for (let i = 0; i < nx; ++i) {
@@ -64,15 +63,18 @@ export function createPlot(nx: int, ny: int, Umax: float) {
         const y = (j + 0.5) * yStep;
         const u = up.get(j, i);
         const v = vp.get(j, i);
-        const xStart = x - (u / 2) * scale;
-        const yStart = y - (v / 2) * scale;
-        const xEnd = x + (u / 2) * scale;
-        const yEnd = y + (v / 2) * scale;
+        const xStart = x;
+        const yStart = y;
+        const xEnd = x + u * scale;
+        const yEnd = y + v * scale;
         const speed = Math.sqrt(u * u + v * v);
-        cells[j][i].setAttribute("fill", interpolateMagma(speed / Umax));
         glyphs[j][i].setAttribute(
           "d",
           `M ${xStart} ${height - yStart} L ${xEnd} ${height - yEnd}`
+        );
+        cells[j][i].setAttribute(
+          "fill",
+          interpolateInferno(speed / (1 * Umax))
         );
       }
     }

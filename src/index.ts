@@ -50,7 +50,7 @@ function poissonSOR(p: TensorView, S: TensorView) {
   }
 }
 
-const Umax = 2;
+const Umax = 1;
 
 const dt1 = 0.5 / nu / (1 / dx / dx + 1 / dy / dy);
 const dt2 = (2 * nu) / Umax / Umax;
@@ -68,10 +68,10 @@ const visualize = createPlot(nx, ny, Umax);
 let t = 0;
 
 function advance() {
-  const Ut = Umax;
-  const Ub = Umax;
+  const Ut = (Math.sin(2 * t) + 1) * Umax;
+  const Ub = Math.cos(t) * Umax;
   const Vl = 0;
-  const Vr = (Math.sin(5 * t) + 0.5) * Umax;
+  const Vr = (Math.sin(t) + 1) * Umax;
 
   u.slice([], 1).set(0);
   u.slice([], -1).set(0);

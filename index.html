@@ -1,6 +1,64 @@
+<!DOCTYPE html>
+<head>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+    integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+"
+    crossorigin="anonymous"
+  />
+  <script>
+    window.WebFontConfig = {
+      custom: {
+        families: [
+          "KaTeX_AMS",
+          "KaTeX_Caligraphic:n4,n7",
+          "KaTeX_Fraktur:n4,n7",
+          "KaTeX_Main:n4,n7,i4,i7",
+          "KaTeX_Math:i4,i7",
+          "KaTeX_Script",
+          "KaTeX_SansSerif:n4,n7,i4",
+          "KaTeX_Size1",
+          "KaTeX_Size2",
+          "KaTeX_Size3",
+          "KaTeX_Size4",
+          "KaTeX_Typewriter",
+        ],
+      },
+    };
+  </script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+    integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg"
+    crossorigin="anonymous"
+  ></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+    integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk"
+    crossorigin="anonymous"
+  ></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.body, {
+        // customised options
+        // • auto-render specific keys, e.g.:
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+          { left: "\\(", right: "\\)", display: false },
+          { left: "\\[", right: "\\]", display: true },
+        ],
+        // • rendering keys, e.g.:
+        throwOnError: false,
+      });
+    });
+  </script>
+</head>
 <div
   style="
     position: fixed;
+    padding: 100px;
     left: 0;
     right: 0;
     top: 0;
@@ -11,18 +69,49 @@
     justify-content: center;
   "
 >
-  <svg id="plot">
+  <div style="color: white; font-family: Georgia; flex: 1">
+    <h2>Model (Navier–Stokes)</h2>
+    <p>
+      For each grid cell $D$, $$\int_D \frac{\partial\vec{u}}{\partial t}
+      \mathrm{d}V= \int_D \left(-\nabla\cdot(\vec{u}\vec{u}) +
+      \nu\nabla^2\vec{u}-\nabla p\right) \mathrm{d}V$$ where pressure $p$ is
+      also unknown.
+    </p>
+    <p>
+      Applying the Leibniz integral rule and the divergence theorem,
+      $$\frac{\mathrm{d}}{\mathrm{d}t}\int_D \vec{u} \mathrm{d}V =\int_{\partial
+      D} \left(-\vec{u}\vec{u} + \nu\nabla\vec{u} \right)\mathrm{d}S -
+      \int_{D}\nabla p\ \mathrm{d}V$$
+    </p>
+    <h2>Algorithm (Finite Volume Method)</h2>
+    <p>In each iteration,</p>
+    <p>
+      1. $\displaystyle\vec{v}^{(n+1)} = \vec{u}^{(n)} + \Delta t
+      \frac{1}{\Delta x \Delta y}\int_{\partial D}
+      \left(-\vec{u}^{(n)}\vec{u}^{(n)} + \nu\nabla\vec{u}^{(n)}
+      \right)\mathrm{d}S$
+    </p>
+    <p>
+      2. Solve $\displaystyle \nabla^2 p^{(n+1)} =
+      \frac{\nabla\cdot\vec{v}^{(n+1)}}{\Delta t}$ for $p$ using Gauss–Seidel.
+    </p>
+    <p>
+      3. $\displaystyle\vec{u}^{(n+1)} = \vec{v}^{(n+1)} - \Delta t \nabla
+      p^{(n+1)}$
+    </p>
+  </div>
+  <svg id="plot" style="flex: 1">
     <defs>
       <marker
-        viewBox="0 0 10 10"
+        viewBox="0 0 1 1"
         id="head"
         orient="auto"
-        markerWidth="2"
-        markerHeight="2"
+        markerWidth="4"
+        markerHeight="4"
         refX="0"
-        refY="5"
+        refY="0.5"
       >
-        <path d="M0,0 V10 L10,5 Z" fill="#ffffff88" />
+        <path d="M0,0 V1 L1,0.5 Z" fill="#ffffffcc" />
       </marker>
     </defs>
   </svg>
