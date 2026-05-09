@@ -14,7 +14,7 @@ The controls are the exhibit. Rather than illustrating results the author alread
 
 ### Technical Challenges
 
-#### The Solver
+#### Finite Volume Method Solver
 
 The simulation models incompressible viscous flow governed by the Navier–Stokes equations:
 
