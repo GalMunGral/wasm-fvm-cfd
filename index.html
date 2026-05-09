@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <head>
+  <meta charset="utf-8" />
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
@@ -100,20 +101,7 @@
       p^{(n+1)}$
     </p>
   </div>
-  <svg id="plot" style="flex: 1">
-    <defs>
-      <marker
-        viewBox="0 0 1 1"
-        id="head"
-        orient="auto"
-        markerWidth="4"
-        markerHeight="4"
-        refX="0"
-        refY="0.5"
-      >
-        <path d="M0,0 V1 L1,0.5 Z" fill="#ffffffcc" />
-      </marker>
-    </defs>
-  </svg>
+  <canvas id="plot" width="512" height="512" style="flex: 1"></canvas>
 </div>
-<script src="index.js"></script>
+<script src="solver.js"></script>
+<script type="module" src="/src/index.ts"></script>
