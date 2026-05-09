@@ -1,10 +1,9 @@
 import { interpolateInferno } from "d3-scale-chromatic";
 import { rgb } from "d3-color";
 
-const cellSize = 5;
-
 export function createPlot(nx: number, ny: number, Umax: number) {
   const canvas = document.querySelector("canvas#plot") as HTMLCanvasElement;
+  const cellSize = Math.floor(canvas.offsetHeight / ny);
   canvas.width = nx * cellSize;
   canvas.height = ny * cellSize;
   const ctx = canvas.getContext("2d")!;

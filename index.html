@@ -1,107 +1,111 @@
 <!DOCTYPE html>
 <head>
   <meta charset="utf-8" />
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
-    integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+"
-    crossorigin="anonymous"
-  />
-  <script>
-    window.WebFontConfig = {
-      custom: {
-        families: [
-          "KaTeX_AMS",
-          "KaTeX_Caligraphic:n4,n7",
-          "KaTeX_Fraktur:n4,n7",
-          "KaTeX_Main:n4,n7,i4,i7",
-          "KaTeX_Math:i4,i7",
-          "KaTeX_Script",
-          "KaTeX_SansSerif:n4,n7,i4",
-          "KaTeX_Size1",
-          "KaTeX_Size2",
-          "KaTeX_Size3",
-          "KaTeX_Size4",
-          "KaTeX_Typewriter",
-        ],
-      },
-    };
-  </script>
-  <script
-    defer
-    src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
-    integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg"
-    crossorigin="anonymous"
-  ></script>
-  <script
-    defer
-    src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
-    integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk"
-    crossorigin="anonymous"
-  ></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      renderMathInElement(document.body, {
-        // customised options
-        // • auto-render specific keys, e.g.:
-        delimiters: [
-          { left: "$$", right: "$$", display: true },
-          { left: "$", right: "$", display: false },
-          { left: "\\(", right: "\\)", display: false },
-          { left: "\\[", right: "\\]", display: true },
-        ],
-        // • rendering keys, e.g.:
-        throwOnError: false,
-      });
-    });
-  </script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      gap: 60px;
+      padding: 60px;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+    }
+
+    #panel {
+      width: 300px;
+      flex-shrink: 0;
+      color: #fff;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    #panel h1 {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #fff;
+      margin-bottom: 28px;
+    }
+
+    .section-title {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #555;
+      margin: 20px 0 10px;
+    }
+
+    .section-title:first-of-type {
+      margin-top: 0;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 6px 0;
+    }
+
+    .row label {
+      width: 100px;
+      font-size: 12px;
+      color: #888;
+      flex-shrink: 0;
+    }
+
+    .row input[type=range] {
+      flex: 1;
+      accent-color: #aaa;
+      cursor: pointer;
+    }
+
+    .row span {
+      width: 52px;
+      font-size: 11px;
+      text-align: right;
+      color: #ccc;
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, monospace;
+      flex-shrink: 0;
+    }
+  </style>
 </head>
-<div
-  style="
-    position: fixed;
-    padding: 100px;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    background-color: black;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  "
->
-  <div style="color: white; font-family: Georgia; flex: 1">
-    <h2>Model (Navier–Stokes)</h2>
-    <p>
-      For each grid cell $D$, $$\int_D \frac{\partial\vec{u}}{\partial t}
-      \mathrm{d}V= \int_D \left(-\nabla\cdot(\vec{u}\vec{u}) +
-      \nu\nabla^2\vec{u}-\nabla p\right) \mathrm{d}V$$ where pressure $p$ is
-      also unknown.
-    </p>
-    <p>
-      Applying the Leibniz integral rule and the divergence theorem,
-      $$\frac{\mathrm{d}}{\mathrm{d}t}\int_D \vec{u} \mathrm{d}V =\int_{\partial
-      D} \left(-\vec{u}\vec{u} + \nu\nabla\vec{u} \right)\mathrm{d}S -
-      \int_{D}\nabla p\ \mathrm{d}V$$
-    </p>
-    <h2>Algorithm (Finite Volume Method)</h2>
-    <p>In each iteration,</p>
-    <p>
-      1. $\displaystyle\vec{v}^{(n+1)} = \vec{u}^{(n)} + \Delta t
-      \frac{1}{\Delta x \Delta y}\int_{\partial D}
-      \left(-\vec{u}^{(n)}\vec{u}^{(n)} + \nu\nabla\vec{u}^{(n)}
-      \right)\mathrm{d}S$
-    </p>
-    <p>
-      2. Solve $\displaystyle \nabla^2 p^{(n+1)} =
-      \frac{\nabla\cdot\vec{v}^{(n+1)}}{\Delta t}$ for $p$ using Gauss–Seidel.
-    </p>
-    <p>
-      3. $\displaystyle\vec{u}^{(n+1)} = \vec{v}^{(n+1)} - \Delta t \nabla
-      p^{(n+1)}$
-    </p>
+<div id="panel">
+  <h1>wasm-fvm-cfd</h1>
+
+  <div class="section-title">Global</div>
+  <div class="row">
+    <label>viscosity ν</label>
+    <input type="range" id="nu" min="0.001" max="0.05" step="0.001" value="0.01">
+    <span></span>
   </div>
-  <canvas id="plot" width="512" height="512" style="flex: 1"></canvas>
+
+  <template id="wall-template">
+    <div class="section-title"></div>
+    <div class="row">
+      <label>wavenumber k</label>
+      <input type="range" data-param="k" min="0" max="8" step="0.5">
+      <span></span>
+    </div>
+    <div class="row">
+      <label>frequency ω</label>
+      <input type="range" data-param="omega" min="-20" max="20" step="0.5">
+      <span></span>
+    </div>
+    <div class="row">
+      <label>amplitude</label>
+      <input type="range" data-param="amp" min="0" max="2" step="0.1">
+      <span></span>
+    </div>
+  </template>
+  <div id="wall-controls"></div>
 </div>
+<canvas id="plot" style="height: calc(100vh - 120px); aspect-ratio: 1 / 1"></canvas>
 <script src="solver.js"></script>
 <script type="module" src="/src/index.ts"></script>

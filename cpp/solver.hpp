@@ -2,6 +2,10 @@
 #include <cmath>
 #include "grid.hpp"
 
+struct WallParams {
+    double k, omega, phase, amp;
+};
+
 void poissonSOR(Grid& p, const Grid& S,
                 const Grid& Ap, const Grid& Ae, const Grid& Aw,
                 const Grid& An, const Grid& As,
@@ -36,22 +40,23 @@ void advance(
     Grid& u, Grid& v, Grid& ut, Grid& vt, Grid& p, Grid& divut,
     const Grid& Ap, const Grid& Ae, const Grid& Aw, const Grid& An, const Grid& As,
     int nx, int ny, double dx, double dy, double nu, double dt,
-    double tol, int maxit, double beta, double& t, double Umax
+    double tol, int maxit, double beta, double& t, double Umax,
+    const WallParams walls[4]
 ) {
     for (int i = 0; i < u.rows; ++i) u.at(i, 1) = 0;
     for (int i = 0; i < u.rows; ++i) u.at(i, -1) = 0;
     for (int j = 0; j < u.cols; ++j) {
         double x = (double)j / nx;
-        u.at(-1, j) = 2 * Umax * std::sin(6.0 * M_PI * x - 9.0 * t)        - u.at(-2, j);
-        u.at(0, j)  = 2 * Umax * std::sin(4.0 * M_PI * x + 11.0 * t + 1.0) - u.at(1, j);
+        u.at(-1, j) = 2 * walls[0].amp * Umax * std::sin(walls[0].k * x + walls[0].omega * t + walls[0].phase) - u.at(-2, j);
+        u.at(0, j)  = 2 * walls[1].amp * Umax * std::sin(walls[1].k * x + walls[1].omega * t + walls[1].phase) - u.at(1, j);
     }
 
     for (int j = 0; j < v.cols; ++j) v.at(-1, j) = 0;
     for (int j = 0; j < v.cols; ++j) v.at(1, j) = 0;
     for (int i = 0; i < v.rows; ++i) {
         double y = (double)i / ny;
-        v.at(i, 0)  = 2 * Umax * std::sin(5.0 * M_PI * y - 7.0 * t + 0.5) - v.at(i, 1);
-        v.at(i, -1) = 2 * Umax * std::sin(3.0 * M_PI * y + 13.0 * t + 2.0) - v.at(i, -2);
+        v.at(i, 0)  = 2 * walls[2].amp * Umax * std::sin(walls[2].k * y + walls[2].omega * t + walls[2].phase) - v.at(i, 1);
+        v.at(i, -1) = 2 * walls[3].amp * Umax * std::sin(walls[3].k * y + walls[3].omega * t + walls[3].phase) - v.at(i, -2);
     }
 
     for (int i = 2; i <= nx; ++i) {
