@@ -1,4 +1,4 @@
-# wasm-fvm-cfd
+# Interactive Navier–Stokes Simulation
 
 **Live demo:** https://galmungral.github.io/wasm-fvm-cfd/
 
