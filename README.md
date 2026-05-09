@@ -18,19 +18,32 @@ The controls are the exhibit. Rather than illustrating results the author alread
 
 The simulation models incompressible viscous flow governed by the Navier–Stokes equations:
 
-$$\int_D \frac{\partial\vec{u}}{\partial t}\ \mathrm{d}V = \int_D \left(-\nabla\cdot(\vec{u}\vec{u}) + \nu\nabla^2\vec{u} - \nabla p\right)\mathrm{d}V$$
+```math
+\int_D \frac{\partial\vec{u}}{\partial t}\ \mathrm{d}V = \int_D \left(-\nabla\cdot(\vec{u}\vec{u}) + \nu\nabla^2\vec{u} - \nabla p\right)\mathrm{d}V
+```
 
-Applying the Leibniz rule and the divergence theorem to each control volume $D$:
+Applying the Leibniz rule and the divergence theorem to each control volume $`D`$:
 
-$$\frac{\mathrm{d}}{\mathrm{d}t}\int_D \vec{u}\ \mathrm{d}V = \int_{\partial D} \left(-\vec{u}\vec{u} + \nu\nabla\vec{u}\right)\mathrm{d}S - \int_D \nabla p\ \mathrm{d}V$$
+```math
+\frac{\mathrm{d}}{\mathrm{d}t}\int_D \vec{u}\ \mathrm{d}V = \int_{\partial D} \left(-\vec{u}\vec{u} + \nu\nabla\vec{u}\right)\mathrm{d}S - \int_D \nabla p\ \mathrm{d}V
+```
 
 Each time step proceeds in three stages:
 
-1. Advance velocity explicitly, ignoring pressure: $\displaystyle\vec{v}^{(n+1)} = \vec{u}^{(n)} + \Delta t \frac{1}{\Delta x \Delta y}\int_{\partial D} \left(-\vec{u}^{(n)}\vec{u}^{(n)} + \nu\nabla\vec{u}^{(n)}\right)\mathrm{d}S$
+1. Advance velocity explicitly, ignoring pressure:
+```math
+\vec{v}^{(n+1)} = \vec{u}^{(n)} + \Delta t \frac{1}{\Delta x \Delta y}\int_{\partial D} \left(-\vec{u}^{(n)}\vec{u}^{(n)} + \nu\nabla\vec{u}^{(n)}\right)\mathrm{d}S
+```
 
-2. Solve for the pressure that enforces incompressibility: $\displaystyle\nabla^2 p^{(n+1)} = \frac{\nabla\cdot\vec{v}^{(n+1)}}{\Delta t}$
+2. Solve for the pressure that enforces incompressibility:
+```math
+\nabla^2 p^{(n+1)} = \frac{\nabla\cdot\vec{v}^{(n+1)}}{\Delta t}
+```
 
-3. Project back onto the divergence-free subspace: $\displaystyle\vec{u}^{(n+1)} = \vec{v}^{(n+1)} - \Delta t\,\nabla p^{(n+1)}$
+3. Project back onto the divergence-free subspace:
+```math
+\vec{u}^{(n+1)} = \vec{v}^{(n+1)} - \Delta t\,\nabla p^{(n+1)}
+```
 
 #### Zero-Copy Memory Handoff
 
