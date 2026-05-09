@@ -13,6 +13,7 @@ OUT = ../public/solver.js
 all: $(OUT)
 
 $(OUT): main.cpp grid.hpp solver.hpp
+	mkdir -p ../public
 	$(CXX) $(CXXFLAGS) main.cpp -o $(OUT) $(LDFLAGS)
 
 clean:
