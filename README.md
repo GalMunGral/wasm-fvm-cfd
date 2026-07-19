@@ -1,6 +1,6 @@
 # Interactive Navier–Stokes Simulation
 
-**Live demo:** https://galmungral.github.io/wasm-fvm-cfd/
+**Live demo:** https://hwenchi.github.io/wasm-fvm-cfd/
 
 ## Rhetorical Design
 
